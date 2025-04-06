@@ -1,9 +1,9 @@
 from app import app
 from flask_sqlalchemy import SQLAlchemy
-
+from werkzeug.security import generate_password_hash
 
 db = SQLAlchemy(app)
-print('Running models.py')
+
 
 
 
@@ -17,7 +17,7 @@ class User(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name=db.Column(db.String(32),unique=True)
-    products=db.relationship('Product',backref='Category',lazy=True)
+    products=db.relationship('Product',backref='category',lazy=True)
 
 class Product(db.Model):
     id = db.Column(db.Integer,primary_key=True)
@@ -28,8 +28,8 @@ class Product(db.Model):
     quantity=db.Column(db.Integer,nullable=False)
     man_date=db.Column(db.Date,nullable=False)
 
-    carts=db.relationship('Cart',backref='Product',lazy=True)
-    orders=db.relationship('Order',backref='Product',lazy=True)
+    carts=db.relationship('Cart',backref='product',lazy=True)
+    orders=db.relationship('Order',backref='product',lazy=True)
 
 
 class Cart(db.Model):
@@ -43,19 +43,26 @@ class Transaction(db.Model):
     user_id=db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
     datetime=db.Column(db.Date,nullable=False)
 
-    orders=db.relationship('Order',backref='Transaction',lazy=True)
+    orders=db.relationship('Order',backref='transaction',lazy=True)
 
 class Order(db.Model):
     id=db.Column(db.Integer,primary_key=True)
-    user_id=db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'), nullable=False)
     product_id=db.Column(db.Integer,db.ForeignKey('product.id'),nullable=False)
     quantity=db.Column(db.Integer,nullable=False)
     price=db.Column(db.Float,nullable=False)
 
+    
 
 with app.app_context():
-    print('creating db')
     db.create_all()
+
+    admin = User.query.filter_by(is_admin=True).first()
+    if not admin:
+        password_hash = generate_password_hash('admin')
+        admin = User(username='admin', passhash=password_hash, name='Admin', is_admin=True)
+        db.session.add(admin)
+        db.session.commit()
 
 
 
