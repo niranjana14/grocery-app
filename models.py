@@ -17,7 +17,8 @@ class User(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name=db.Column(db.String(32),unique=True)
-    products=db.relationship('Product',backref='category',lazy=True)
+
+    products=db.relationship('Product',backref='category',lazy=True, cascade='all, delete-orphan')
 
 class Product(db.Model):
     id = db.Column(db.Integer,primary_key=True)
@@ -28,8 +29,8 @@ class Product(db.Model):
     quantity=db.Column(db.Integer,nullable=False)
     man_date=db.Column(db.Date,nullable=False)
 
-    carts=db.relationship('Cart',backref='product',lazy=True)
-    orders=db.relationship('Order',backref='product',lazy=True)
+    carts=db.relationship('Cart',backref='product',lazy=True, cascade='all, delete-orphan')
+    orders=db.relationship('Order',backref='product',lazy=True, cascade='all, delete-orphan')
 
 
 class Cart(db.Model):
@@ -43,7 +44,7 @@ class Transaction(db.Model):
     user_id=db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
     datetime=db.Column(db.Date,nullable=False)
 
-    orders=db.relationship('Order',backref='transaction',lazy=True)
+    orders=db.relationship('Order',backref='transaction',lazy=True, cascade='all, delete-orphan')
 
 class Order(db.Model):
     id=db.Column(db.Integer,primary_key=True)
@@ -63,6 +64,9 @@ with app.app_context():
         admin = User(username='admin', passhash=password_hash, name='Admin', is_admin=True)
         db.session.add(admin)
         db.session.commit()
+
+
+
 
 
 
